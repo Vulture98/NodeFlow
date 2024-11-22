@@ -3,9 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Handle, Position } from 'reactflow';
 
-const MIN_WIDTH = 200;
-const MIN_HEIGHT = 80;
-const PADDING = 20;
+const MIN_WIDTH = 400; // Increased width
+const MAX_WIDTH = 600; // Increased max width
+const MIN_HEIGHT = 60; // Reduced minimum height
+const PADDING = 10; // Reduced padding
+const LINE_HEIGHT = 20;
+const HANDLE_SPACING = 20; // Reduced spacing
 
 export const TextNode = ({ id, data }) => {
   const [currText, setCurrText] = useState(data?.text || '{{input}}');
@@ -19,24 +22,40 @@ export const TextNode = ({ id, data }) => {
     return matches.map(match => match[1].trim());
   }, []);
 
+  // Calculate required height based on content
+  const calculateHeight = useCallback((text, numVars) => {
+    const textLines = Math.ceil(text.length * 7 / MAX_WIDTH); // Approximate chars per line
+    const textHeight = Math.max(2, textLines) * LINE_HEIGHT; // Minimum 2 lines
+    const varsHeight = numVars * HANDLE_SPACING;
+    return Math.max(MIN_HEIGHT, textHeight + varsHeight + PADDING * 2);
+  }, []);
+
   // Update variables and dimensions when text changes
   useEffect(() => {
     // Extract variables
     const newVars = extractVariables(currText);
     setVariables(newVars);
-
-    // Calculate dimensions based on text length
-    const textLength = currText.length;
-    const numLines = Math.ceil(textLength / 30); // Approximate characters per line
     
+    // Update dimensions
     setDimensions({
-      width: Math.max(MIN_WIDTH, Math.min(textLength * 8, 400)), // Cap width at 400px
-      height: Math.max(MIN_HEIGHT, 40 + (numLines * 20) + (newVars.length * 25))
+      width: MAX_WIDTH,
+      height: calculateHeight(currText, newVars.length)
     });
-  }, [currText, extractVariables]);
+  }, [currText, extractVariables, calculateHeight]);
+
+  // Calculate handle positions
+  const getHandlePosition = (index, total) => {
+    if (total === 0) return 0;
+    if (total === 1) return 50;
+    const step = 100 / (total + 1);
+    return step * (index + 1);
+  };
 
   const handleTextChange = (e) => {
     setCurrText(e.target.value);
+    if (data.onTextChange) {
+      data.onTextChange(id, e.target.value);
+    }
   };
 
   return (
@@ -46,9 +65,10 @@ export const TextNode = ({ id, data }) => {
       border: '1px solid black',
       borderRadius: '5px',
       padding: PADDING,
-      backgroundColor: '#fff'
+      backgroundColor: '#fff',
+      position: 'relative'
     }}>
-      <div style={{ marginBottom: '10px' }}>
+      <div style={{ marginBottom: '5px' }}>
         <span style={{ fontWeight: 'bold' }}>Text Node</span>
       </div>
       <div>
@@ -57,11 +77,15 @@ export const TextNode = ({ id, data }) => {
           onChange={handleTextChange}
           style={{
             width: '100%',
-            minHeight: '40px',
-            resize: 'vertical',
+            height: `${dimensions.height - 50}px`, // Dynamic height based on content
+            resize: 'none', // Disable manual resizing
             padding: '5px',
             borderRadius: '3px',
-            border: '1px solid #ccc'
+            border: '1px solid #ccc',
+            fontFamily: 'monospace',
+            fontSize: '14px',
+            lineHeight: '1.4',
+            overflow: 'hidden' // Hide scrollbars
           }}
         />
       </div>
@@ -69,11 +93,15 @@ export const TextNode = ({ id, data }) => {
       {/* Dynamic input handles for variables */}
       {variables.map((variable, index) => (
         <Handle
-          key={`${id}-${variable}`}
+          key={variable}
           type="target"
           position={Position.Left}
-          id={`${id}-${variable}`}
-          style={{ top: 40 + (index * 25) }}
+          id={variable}
+          style={{
+            top: `${getHandlePosition(index, variables.length)}%`,
+            transform: 'translateY(-50%)'
+          }}
+          data-variable={variable}
         />
       ))}
 
@@ -81,8 +109,12 @@ export const TextNode = ({ id, data }) => {
       <Handle
         type="source"
         position={Position.Right}
-        id={`${id}-output`}
+        id="output"
+        style={{
+          top: '50%',
+          transform: 'translateY(-50%)'
+        }}
       />
     </div>
   );
-}
+};

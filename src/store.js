@@ -51,4 +51,60 @@ export const useStore = create((set, get) => ({
         }),
       });
     },
+    updateNodeData: (nodeId, data) => {
+      set({
+        nodes: get().nodes.map((node) => {
+          if (node.id === nodeId) {
+            return { ...node, data: { ...node.data, ...data } };
+          }
+          return node;
+        }),
+      });
+    },
+    onTextNodeChange: (nodeId, newText) => {
+      const oldNode = get().nodes.find(node => node.id === nodeId);
+      if (!oldNode) return;
+
+      const getVariables = (text) => {
+        const regex = /{{([^}]+)}}/g;
+        const matches = [...text.matchAll(regex)];
+        return matches.map(match => match[1].trim());
+      };
+
+      const oldVars = getVariables(oldNode.data.text || '');
+      const newVars = getVariables(newText);
+
+      // Keep track of which edges are connected to which variables
+      const edgesByVariable = {};
+      get().edges.forEach(edge => {
+        if (edge.target === nodeId) {
+          edgesByVariable[edge.targetHandle] = edge;
+        }
+      });
+
+      // Only keep edges whose variables still exist
+      const updatedEdges = get().edges.filter(edge => {
+        if (edge.target === nodeId) {
+          return newVars.includes(edge.targetHandle);
+        }
+        return true;
+      });
+
+      set({
+        edges: updatedEdges,
+        nodes: get().nodes.map(node => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                text: newText,
+                onTextChange: get().onTextNodeChange
+              }
+            };
+          }
+          return node;
+        })
+      });
+    }
   }));

@@ -2,7 +2,7 @@
 // Displays the drag-and-drop UI
 // --------------------------------------------------
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactFlow, { Controls, Background, MiniMap } from 'reactflow';
 import { useStore } from './store';
 import { shallow } from 'zustand/shallow';
@@ -44,6 +44,49 @@ export const PipelineUI = () => {
       onEdgesChange,
       onConnect
     } = useStore(selector, shallow);
+
+    // Add test nodes automatically
+    useEffect(() => {
+      if (nodes.length === 0) {
+        // Create input nodes
+        const input1 = {
+          id: 'input-1',
+          type: 'customInput',
+          position: { x: 100, y: 100 },
+          data: { id: 'input-1', nodeType: 'customInput' }
+        };
+        const input2 = {
+          id: 'input-2',
+          type: 'customInput',
+          position: { x: 100, y: 250 },
+          data: { id: 'input-2', nodeType: 'customInput' }
+        };
+
+        // Create text node
+        const textNode = {
+          id: 'text-1',
+          type: 'text',
+          position: { x: 400, y: 175 },
+          data: { 
+            id: 'text-1', 
+            nodeType: 'text',
+            text: '{{input1}}\n{{input2}}',
+            onTextChange: useStore.getState().onTextNodeChange
+          }
+        };
+
+        // Create LLM node
+        const llmNode = {
+          id: 'llm-1',
+          type: 'llm',
+          position: { x: 700, y: 175 },
+          data: { id: 'llm-1', nodeType: 'llm' }
+        };
+
+        // Add all nodes
+        [input1, input2, textNode, llmNode].forEach(node => addNode(node));
+      }
+    }, []);
 
     const getInitNodeData = (nodeID, type) => {
       let nodeData = { id: nodeID, nodeType: `${type}` };

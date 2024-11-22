@@ -9,19 +9,29 @@ export const useSubmitPipeline = () => {
 
   const submitPipeline = useCallback(async () => {
     try {
+      console.log('Submitting pipeline with:', { nodes, edges });
+      
       const response = await fetch('http://localhost:8000/pipelines/parse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ nodes, edges }),
+        body: JSON.stringify({ 
+          nodes: nodes.map(({ id, type, position, data }) => ({ id, type, position, data })),
+          edges: edges.map(({ id, source, sourceHandle, target, targetHandle }) => 
+            ({ id, source, sourceHandle, target, targetHandle }))
+        })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit pipeline');
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Server response:', data);
       
       // Create user-friendly message
       const message = `Pipeline Analysis:
@@ -35,7 +45,7 @@ export const useSubmitPipeline = () => {
       return data;
     } catch (error) {
       console.error('Error submitting pipeline:', error);
-      alert('Failed to submit pipeline. Please try again.');
+      alert(`Failed to submit pipeline: ${error.message}`);
     }
   }, [nodes, edges]);
 
