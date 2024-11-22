@@ -18,28 +18,30 @@ export const InputNode = ({ id, data }) => {
   return (
     <div style={{
       width: 200,
-      height: 100, // Increased height
+      height: 120, // Increased height for bottom padding
       border: '1px solid #2d3748',
       borderRadius: '8px',
       backgroundColor: '#fff',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative'
     }}>
       <div style={{
         padding: '4px 8px',
         backgroundColor: '#2d3748',
         color: 'white',
         fontWeight: 'bold',
-        borderBottom: '1px solid #2d3748'
+        borderBottom: '1px solid #2d3748',
+        borderRadius: '8px 8px 0 0'
       }}>
         Input
       </div>
       <div style={{ 
-        padding: '8px',
+        padding: '12px 12px 20px 12px', // Increased bottom padding
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '10px',
         flex: 1
       }}>
         <input 
@@ -48,7 +50,7 @@ export const InputNode = ({ id, data }) => {
           onChange={handleNameChange}
           style={{
             width: '100%',
-            padding: '4px 6px',
+            padding: '4px 8px',
             border: '1px solid #e2e8f0',
             borderRadius: '4px',
             fontSize: '13px',
@@ -61,7 +63,7 @@ export const InputNode = ({ id, data }) => {
           onChange={handleTypeChange}
           style={{
             width: '100%',
-            padding: '2px 4px',
+            padding: '2px 6px',
             border: '1px solid #e2e8f0',
             borderRadius: '4px',
             backgroundColor: '#f7fafc',
@@ -78,10 +80,14 @@ export const InputNode = ({ id, data }) => {
         position={Position.Right}
         id={`${id}-value`}
         style={{
+          top: '50%',
+          right: '-6px', // Half the handle width for center alignment
+          transform: 'translate(50%, -50%)',
           width: '12px',
           height: '12px',
-          backgroundColor: '#4299e1',
-          border: '2px solid #2b6cb0'
+          backgroundColor: '#48bb78',
+          border: '2px solid #2f855a',
+          zIndex: 1
         }}
       />
     </div>

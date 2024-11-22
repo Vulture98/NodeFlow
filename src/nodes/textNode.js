@@ -1,20 +1,21 @@
 // textNode.js
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Handle, Position } from 'reactflow';
 
-const MIN_WIDTH = 200;  // Start with smaller width
-const MAX_WIDTH = 500;  // Maximum width
-const MIN_HEIGHT = 100;  // Minimum height
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 500;
+const MIN_HEIGHT = 100;
 const PADDING = 8;
-const LINE_HEIGHT = 20;
-const HANDLE_SPACING = 20;
 const HEADER_HEIGHT = 32;
+const HANDLE_SPACING = 20;
+const LINE_HEIGHT = 20;  // Fixed height per line
 
 export const TextNode = ({ id, data }) => {
   const [currText, setCurrText] = useState(data?.text || '{{input}}');
   const [variables, setVariables] = useState([]);
   const [dimensions, setDimensions] = useState({ width: MIN_WIDTH, height: MIN_HEIGHT });
+  const textareaRef = useRef(null);
 
   // Function to extract variables from text
   const extractVariables = useCallback((text) => {
@@ -23,40 +24,54 @@ export const TextNode = ({ id, data }) => {
     return matches.map(match => match[1].trim());
   }, []);
 
-  // Calculate required dimensions based on content
-  const calculateDimensions = useCallback((text, numVars) => {
-    // Calculate width based on text length
-    const longestLine = text.split('\n')
-      .reduce((max, line) => Math.max(max, line.length), 0);
-    const calculatedWidth = Math.min(
-      MAX_WIDTH,
-      Math.max(MIN_WIDTH, longestLine * 8)
+  // Calculate dimensions based on content
+  const calculateDimensions = useCallback(() => {
+    if (!textareaRef.current) return { width: MIN_WIDTH, height: MIN_HEIGHT };
+
+    const textarea = textareaRef.current;
+    
+    // Create a hidden div to measure text width
+    const measurer = document.createElement('div');
+    measurer.style.position = 'absolute';
+    measurer.style.visibility = 'hidden';
+    measurer.style.whiteSpace = 'pre';  
+    measurer.style.padding = '6px 8px';
+    measurer.style.boxSizing = 'border-box';
+    measurer.style.font = window.getComputedStyle(textarea).font;
+    document.body.appendChild(measurer);
+
+    // Calculate width by measuring each line
+    let contentWidth = MIN_WIDTH;
+    const lines = textarea.value.split('\n');
+    lines.forEach(line => {
+      measurer.textContent = line;
+      const lineWidth = measurer.offsetWidth + PADDING * 4; 
+      contentWidth = Math.max(contentWidth, lineWidth);
+    });
+    document.body.removeChild(measurer);
+
+    // Bound width between MIN and MAX
+    const calculatedWidth = Math.min(Math.max(contentWidth, MIN_WIDTH), MAX_WIDTH);
+
+    // Calculate height based only on number of lines and variables
+    const numLines = textarea.value.split('\n').length;
+    const contentHeight = numLines * LINE_HEIGHT;
+    const varsHeight = variables.length > 0 ? variables.length * HANDLE_SPACING : 0;
+    const calculatedHeight = Math.max(
+      MIN_HEIGHT, 
+      contentHeight + varsHeight + HEADER_HEIGHT + PADDING * 3
     );
 
-    // Calculate height based on text content and line breaks
-    const lines = text.split('\n');
-    const wrappedLines = lines.reduce((total, line) => 
-      total + Math.ceil(line.length / (calculatedWidth / 8)), 0);
-    const textHeight = Math.max(2, wrappedLines) * LINE_HEIGHT;
-    const varsHeight = numVars * HANDLE_SPACING;
-    const calculatedHeight = Math.max(MIN_HEIGHT, textHeight + varsHeight + PADDING * 3 + HEADER_HEIGHT);
-
     return { width: calculatedWidth, height: calculatedHeight };
-  }, []);
+  }, [variables.length]);
 
-  // Update variables and dimensions when text changes
+  // Update dimensions when text changes
   useEffect(() => {
     const newVars = extractVariables(currText);
     setVariables(newVars);
-    setDimensions(calculateDimensions(currText, newVars.length));
-  }, [currText, extractVariables, calculateDimensions]);
-
-  const getHandlePosition = (index, total) => {
-    if (total === 0) return 0;
-    if (total === 1) return 50;
-    const step = 100 / (total + 1);
-    return step * (index + 1);
-  };
+    const newDimensions = calculateDimensions();
+    setDimensions(newDimensions);
+  }, [currText, calculateDimensions, extractVariables]);
 
   const handleTextChange = (e) => {
     setCurrText(e.target.value);
@@ -75,6 +90,7 @@ export const TextNode = ({ id, data }) => {
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       display: 'flex',
       flexDirection: 'column',
+      position: 'relative',
       transition: 'width 0.2s ease, height 0.2s ease'
     }}>
       <div style={{ 
@@ -84,8 +100,8 @@ export const TextNode = ({ id, data }) => {
         color: 'white',
         fontWeight: 'bold',
         borderBottom: '1px solid #2d3748',
-        display: 'flex',
-        alignItems: 'center'
+        borderRadius: '8px 8px 0 0',
+        flexShrink: 0
       }}>
         Text Node
       </div>
@@ -95,6 +111,7 @@ export const TextNode = ({ id, data }) => {
         display: 'flex'
       }}>
         <textarea
+          ref={textareaRef}
           value={currText}
           onChange={handleTextChange}
           style={{
@@ -106,8 +123,10 @@ export const TextNode = ({ id, data }) => {
             border: '1px solid #e2e8f0',
             fontFamily: 'monospace',
             fontSize: '13px',
-            lineHeight: '1.4',
-            backgroundColor: '#f7fafc'
+            lineHeight: LINE_HEIGHT + 'px',  // Match LINE_HEIGHT
+            backgroundColor: '#f7fafc',
+            boxSizing: 'border-box',
+            overflow: 'hidden'  
           }}
         />
       </div>
@@ -119,12 +138,14 @@ export const TextNode = ({ id, data }) => {
           position={Position.Left}
           id={variable}
           style={{
-            top: `${getHandlePosition(index, variables.length)}%`,
-            transform: 'translateY(-50%)',
+            top: `${(index + 1) * (100 / (variables.length + 1))}%`,
+            left: '-6px',
+            transform: 'translate(-50%, -50%)',
             width: '12px',
             height: '12px',
             backgroundColor: '#4299e1',
-            border: '2px solid #2b6cb0'
+            border: '2px solid #2b6cb0',
+            zIndex: 1
           }}
           data-variable={variable}
         />
@@ -136,11 +157,13 @@ export const TextNode = ({ id, data }) => {
         id="output"
         style={{
           top: '50%',
-          transform: 'translateY(-50%)',
+          right: '-6px',
+          transform: 'translate(50%, -50%)',
           width: '12px',
           height: '12px',
           backgroundColor: '#48bb78',
-          border: '2px solid #2f855a'
+          border: '2px solid #2f855a',
+          zIndex: 1
         }}
       />
     </div>
