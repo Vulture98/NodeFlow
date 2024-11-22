@@ -15,3 +15,8 @@
 
 # working v3:
 1. created node abstraction
+
+
+# working v4:
+1. almost done
+2. just need to decrease gap in text node

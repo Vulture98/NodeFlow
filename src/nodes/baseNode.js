@@ -4,11 +4,11 @@ import { Handle, Position } from 'reactflow';
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
-const MIN_HEIGHT = 120; // Increased minimum height
-const PADDING = 8;
+const MIN_HEIGHT = 160; // Increased minimum height to accommodate all content
+const PADDING = 16; // Increased padding
 const HEADER_HEIGHT = 32;
 const HANDLE_SPACING = 20;
-const BOTTOM_MARGIN = 12; // Standardized bottom margin
+const BOTTOM_MARGIN = 1;
 
 export const BaseNode = ({ 
   id, 
@@ -17,13 +17,13 @@ export const BaseNode = ({
   width = MIN_WIDTH,
   height = MIN_HEIGHT,
   children,
-  inputHandles = [],  // Array of { id, label } for input handles
-  outputHandles = [], // Array of { id, label } for output handles
+  inputHandles = [],
+  outputHandles = [],
 }) => {
   return (
     <div style={{
       width,
-      height,
+      minHeight: height, // Changed to minHeight to allow content to determine actual height
       border: '1px solid #2d3748',
       borderRadius: '8px',
       backgroundColor: '#fff',
@@ -49,11 +49,9 @@ export const BaseNode = ({
       <div style={{
         padding: PADDING,
         paddingBottom: PADDING + BOTTOM_MARGIN,
-        flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px', // Added consistent gap between elements
-        minHeight: 0
+        gap: '12px'
       }}>
         {children}
       </div>
@@ -109,23 +107,27 @@ export const commonStyles = {
     border: '1px solid #e2e8f0',
     borderRadius: '4px',
     fontSize: '13px',
-    height: '24px',
-    boxSizing: 'border-box'
+    height: '28px', // Reduced height
+    boxSizing: 'border-box',
+    backgroundColor: '#f7fafc'
   },
   select: {
     width: '100%',
-    padding: '2px 6px',
+    padding: '4px 8px',
     border: '1px solid #e2e8f0',
     borderRadius: '4px',
     backgroundColor: '#f7fafc',
     fontSize: '13px',
-    height: '24px'
+    height: '28px', // Reduced height
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
   textarea: {
     width: '100%',
     height: '100%',
     resize: 'none',
-    padding: '6px 8px',
+    padding: '8px',
     borderRadius: '4px',
     border: '1px solid #e2e8f0',
     fontFamily: 'monospace',
