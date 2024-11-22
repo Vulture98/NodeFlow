@@ -11,3 +11,7 @@
 3. ip, op, llm nodes also look good
 4. text node dynamic resizing ok
 5. submit pipeline gives correct result
+
+
+# working v3:
+1. created node abstraction
