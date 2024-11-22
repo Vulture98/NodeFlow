@@ -5,11 +5,11 @@ import { Handle, Position } from 'reactflow';
 
 const MIN_WIDTH = 200;  // Start with smaller width
 const MAX_WIDTH = 500;  // Maximum width
-const MIN_HEIGHT = 60;  // Minimum height
-const PADDING = 10;
+const MIN_HEIGHT = 100;  // Minimum height
+const PADDING = 8;
 const LINE_HEIGHT = 20;
 const HANDLE_SPACING = 20;
-const CHARS_PER_LINE = 50; // Approximate characters per line before wrapping
+const HEADER_HEIGHT = 32;
 
 export const TextNode = ({ id, data }) => {
   const [currText, setCurrText] = useState(data?.text || '{{input}}');
@@ -30,16 +30,16 @@ export const TextNode = ({ id, data }) => {
       .reduce((max, line) => Math.max(max, line.length), 0);
     const calculatedWidth = Math.min(
       MAX_WIDTH,
-      Math.max(MIN_WIDTH, longestLine * 8) // 8px per character approx
+      Math.max(MIN_WIDTH, longestLine * 8)
     );
 
     // Calculate height based on text content and line breaks
     const lines = text.split('\n');
     const wrappedLines = lines.reduce((total, line) => 
       total + Math.ceil(line.length / (calculatedWidth / 8)), 0);
-    const textHeight = Math.max(1, wrappedLines) * LINE_HEIGHT;
+    const textHeight = Math.max(2, wrappedLines) * LINE_HEIGHT;
     const varsHeight = numVars * HANDLE_SPACING;
-    const calculatedHeight = Math.max(MIN_HEIGHT, textHeight + varsHeight + PADDING * 2);
+    const calculatedHeight = Math.max(MIN_HEIGHT, textHeight + varsHeight + PADDING * 3 + HEADER_HEIGHT);
 
     return { width: calculatedWidth, height: calculatedHeight };
   }, []);
@@ -71,36 +71,42 @@ export const TextNode = ({ id, data }) => {
       height: dimensions.height,
       border: '1px solid #2d3748',
       borderRadius: '8px',
-      padding: PADDING,
       backgroundColor: '#fff',
-      position: 'relative',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      transition: 'width 0.2s ease, height 0.2s ease' // Smooth size transitions
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'width 0.2s ease, height 0.2s ease'
     }}>
       <div style={{ 
-        marginBottom: '5px',
+        height: HEADER_HEIGHT,
         padding: '4px 8px',
-        borderRadius: '4px 4px 0 0',
         backgroundColor: '#2d3748',
-        color: 'white'
+        color: 'white',
+        fontWeight: 'bold',
+        borderBottom: '1px solid #2d3748',
+        display: 'flex',
+        alignItems: 'center'
       }}>
-        <span style={{ fontWeight: 'bold' }}>Text Node</span>
+        Text Node
       </div>
-      <div>
+      <div style={{
+        padding: PADDING,
+        flex: 1,
+        display: 'flex'
+      }}>
         <textarea
           value={currText}
           onChange={handleTextChange}
           style={{
             width: '100%',
-            height: `${dimensions.height - 60}px`,
+            height: '100%',
             resize: 'none',
-            padding: '8px',
+            padding: '6px 8px',
             borderRadius: '4px',
             border: '1px solid #e2e8f0',
             fontFamily: 'monospace',
-            fontSize: '14px',
+            fontSize: '13px',
             lineHeight: '1.4',
-            overflow: 'hidden',
             backgroundColor: '#f7fafc'
           }}
         />

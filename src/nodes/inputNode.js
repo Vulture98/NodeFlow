@@ -18,47 +18,55 @@ export const InputNode = ({ id, data }) => {
   return (
     <div style={{
       width: 200,
-      height: 80,
+      height: 100, // Increased height
       border: '1px solid #2d3748',
       borderRadius: '8px',
       backgroundColor: '#fff',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      overflow: 'hidden'
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       <div style={{
         padding: '4px 8px',
         backgroundColor: '#2d3748',
         color: 'white',
         fontWeight: 'bold',
-        marginBottom: '8px'
+        borderBottom: '1px solid #2d3748'
       }}>
         Input
       </div>
-      <div style={{ padding: '0 8px' }}>
-        <div style={{ marginBottom: '4px' }}>
-          <input 
-            type="text" 
-            value={currName}
-            onChange={handleNameChange}
-            style={{
-              width: '100%',
-              padding: '4px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '4px',
-              fontSize: '14px'
-            }}
-          />
-        </div>
+      <div style={{ 
+        padding: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        flex: 1
+      }}>
+        <input 
+          type="text" 
+          value={currName}
+          onChange={handleNameChange}
+          style={{
+            width: '100%',
+            padding: '4px 6px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '4px',
+            fontSize: '13px',
+            height: '24px',
+            boxSizing: 'border-box'
+          }}
+        />
         <select 
           value={inputType} 
           onChange={handleTypeChange}
           style={{
             width: '100%',
-            padding: '4px',
+            padding: '2px 4px',
             border: '1px solid #e2e8f0',
             borderRadius: '4px',
             backgroundColor: '#f7fafc',
-            fontSize: '14px'
+            fontSize: '13px',
+            height: '24px'
           }}
         >
           <option value="Text">Text</option>
