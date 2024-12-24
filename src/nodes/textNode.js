@@ -1,19 +1,19 @@
 // textNode.js
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BaseNode, commonStyles, constants } from './baseNode';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Handle, Position } from 'reactflow';
-
-const MIN_WIDTH = 400; // Increased width
-const MAX_WIDTH = 600; // Increased max width
-const MIN_HEIGHT = 60; // Reduced minimum height
-const PADDING = 10; // Reduced padding
 const LINE_HEIGHT = 20;
-const HANDLE_SPACING = 20; // Reduced spacing
+const HEIGHT_INCREMENT = 40;
+const MAX_CONTENT_HEIGHT = 300;
 
 export const TextNode = ({ id, data }) => {
   const [currText, setCurrText] = useState(data?.text || '{{input}}');
   const [variables, setVariables] = useState([]);
-  const [dimensions, setDimensions] = useState({ width: MIN_WIDTH, height: MIN_HEIGHT });
+  const [dimensions, setDimensions] = useState({ 
+    width: constants.MIN_WIDTH, 
+    height: constants.MIN_HEIGHT 
+  });
+  const textareaRef = useRef(null);
 
   // Function to extract variables from text
   const extractVariables = useCallback((text) => {
@@ -22,34 +22,67 @@ export const TextNode = ({ id, data }) => {
     return matches.map(match => match[1].trim());
   }, []);
 
-  // Calculate required height based on content
-  const calculateHeight = useCallback((text, numVars) => {
-    const textLines = Math.ceil(text.length * 7 / MAX_WIDTH); // Approximate chars per line
-    const textHeight = Math.max(2, textLines) * LINE_HEIGHT; // Minimum 2 lines
-    const varsHeight = numVars * HANDLE_SPACING;
-    return Math.max(MIN_HEIGHT, textHeight + varsHeight + PADDING * 2);
-  }, []);
+  // Calculate dimensions based on content
+  const calculateDimensions = useCallback(() => {
+    if (!textareaRef.current) return { 
+      width: constants.MIN_WIDTH, 
+      height: constants.MIN_HEIGHT 
+    };
 
-  // Update variables and dimensions when text changes
+    const textarea = textareaRef.current;
+    
+    // Create a hidden div to measure text width
+    const measurer = document.createElement('div');
+    measurer.style.position = 'absolute';
+    measurer.style.visibility = 'hidden';
+    measurer.style.whiteSpace = 'pre';
+    measurer.style.padding = '6px 8px';
+    measurer.style.boxSizing = 'border-box';
+    measurer.style.font = window.getComputedStyle(textarea).font;
+    document.body.appendChild(measurer);
+
+    // Calculate width by measuring each line
+    let contentWidth = constants.MIN_WIDTH;
+    const lines = textarea.value.split('\n');
+    lines.forEach(line => {
+      measurer.textContent = line;
+      const lineWidth = measurer.offsetWidth + constants.PADDING * 2;
+      contentWidth = Math.max(contentWidth, lineWidth);
+    });
+    document.body.removeChild(measurer);
+
+    // Calculate base content height
+    const numLines = textarea.value.split('\n').length;
+    const contentHeight = numLines * LINE_HEIGHT;
+    
+    // Calculate height in increments
+    const baseHeight = constants.HEADER_HEIGHT + constants.PADDING * 2;
+    const varsHeight = variables.length > 0 ? variables.length * constants.HANDLE_SPACING : 0;
+    const targetContentHeight = Math.min(contentHeight, MAX_CONTENT_HEIGHT);
+    
+    // Round up to nearest HEIGHT_INCREMENT
+    const incrementedHeight = Math.ceil(targetContentHeight / HEIGHT_INCREMENT) * HEIGHT_INCREMENT;
+    const calculatedHeight = Math.max(
+      constants.MIN_HEIGHT,
+      baseHeight + incrementedHeight + varsHeight
+    );
+
+    // Bound width between MIN and MAX
+    const calculatedWidth = Math.min(
+      Math.max(contentWidth, constants.MIN_WIDTH),
+      constants.MAX_WIDTH
+    );
+
+    return { width: calculatedWidth, height: calculatedHeight };
+  }, [variables.length]);
+
+  // Update dimensions when text changes
   useEffect(() => {
-    // Extract variables
     const newVars = extractVariables(currText);
     setVariables(newVars);
-    
-    // Update dimensions
-    setDimensions({
-      width: MAX_WIDTH,
-      height: calculateHeight(currText, newVars.length)
-    });
-  }, [currText, extractVariables, calculateHeight]);
-
-  // Calculate handle positions
-  const getHandlePosition = (index, total) => {
-    if (total === 0) return 0;
-    if (total === 1) return 50;
-    const step = 100 / (total + 1);
-    return step * (index + 1);
-  };
+    const newDimensions = calculateDimensions();
+    setDimensions(newDimensions);
+  }, [currText, calculateDimensions, extractVariables]);
 
   const handleTextChange = (e) => {
     setCurrText(e.target.value);
@@ -59,62 +92,26 @@ export const TextNode = ({ id, data }) => {
   };
 
   return (
-    <div style={{
-      width: dimensions.width,
-      height: dimensions.height,
-      border: '1px solid black',
-      borderRadius: '5px',
-      padding: PADDING,
-      backgroundColor: '#fff',
-      position: 'relative'
-    }}>
-      <div style={{ marginBottom: '5px' }}>
-        <span style={{ fontWeight: 'bold' }}>Text Node</span>
-      </div>
-      <div>
-        <textarea
-          value={currText}
-          onChange={handleTextChange}
-          style={{
-            width: '100%',
-            height: `${dimensions.height - 50}px`, // Dynamic height based on content
-            resize: 'none', // Disable manual resizing
-            padding: '5px',
-            borderRadius: '3px',
-            border: '1px solid #ccc',
-            fontFamily: 'monospace',
-            fontSize: '14px',
-            lineHeight: '1.4',
-            overflow: 'hidden' // Hide scrollbars
-          }}
-        />
-      </div>
-      
-      {/* Dynamic input handles for variables */}
-      {variables.map((variable, index) => (
-        <Handle
-          key={variable}
-          type="target"
-          position={Position.Left}
-          id={variable}
-          style={{
-            top: `${getHandlePosition(index, variables.length)}%`,
-            transform: 'translateY(-50%)'
-          }}
-          data-variable={variable}
-        />
-      ))}
-
-      {/* Output handle */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="output"
+    <BaseNode
+      id={id}
+      data={data}
+      title="Text Node"
+      width={dimensions.width}
+      height={dimensions.height}
+      inputHandles={variables.map(v => ({ id: v, label: v }))}
+      outputHandles={[{ id: 'output', label: 'Output' }]}
+    >
+      <textarea
+        ref={textareaRef}
+        value={currText}
+        onChange={handleTextChange}
         style={{
-          top: '50%',
-          transform: 'translateY(-50%)'
+          ...commonStyles.textarea,
+          lineHeight: LINE_HEIGHT + 'px',
+          maxHeight: `${MAX_CONTENT_HEIGHT}px`,
+          overflowY: 'auto'
         }}
       />
-    </div>
+    </BaseNode>
   );
 };
