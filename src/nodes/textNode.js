@@ -30,33 +30,30 @@ export const TextNode = ({ id, data }) => {
   // Calculate dimensions based on content and variables
   const calculateDimensions = useCallback(() => {
     const baseHeight = constants.HEADER_HEIGHT + constants.PADDING * 2;
-    const varsHeight = variables.length * constants.HANDLE_SPACING;
-    
-    // Always ensure enough height for handles
-    const minHeightForHandles = baseHeight + varsHeight + constants.MIN_HEIGHT;
+    const varsHeight = Math.max(variables.length * constants.HANDLE_SPACING, 0);
     
     if (!textareaRef.current) return { 
       width: constants.MIN_WIDTH, 
-      height: minHeightForHandles
+      height: baseHeight + varsHeight + constants.MIN_HEIGHT
     };
 
     const textarea = textareaRef.current;
     
-    // Calculate content width
+    // Calculate content height
+    const numLines = (textarea.value.match(/\n/g) || []).length + 1;
+    const contentHeight = Math.max(numLines * LINE_HEIGHT, LINE_HEIGHT);
+    const targetContentHeight = Math.min(contentHeight + constants.PADDING * 2, MAX_CONTENT_HEIGHT);
+    
+    // Calculate total height
+    const calculatedHeight = Math.max(
+      constants.MIN_HEIGHT,
+      baseHeight + targetContentHeight + varsHeight
+    );
+
+    // Calculate width
     const contentWidth = Math.min(
       Math.max(textarea.scrollWidth + constants.PADDING * 2, constants.MIN_WIDTH),
       constants.MAX_WIDTH
-    );
-
-    // Calculate content height
-    const numLines = textarea.value.split('\n').length;
-    const contentHeight = numLines * LINE_HEIGHT;
-    const targetContentHeight = Math.min(contentHeight, MAX_CONTENT_HEIGHT);
-    
-    // Ensure height accommodates both content and handles
-    const calculatedHeight = Math.max(
-      minHeightForHandles,
-      baseHeight + targetContentHeight + varsHeight
     );
 
     return { 
@@ -114,10 +111,17 @@ export const TextNode = ({ id, data }) => {
         label: v,
         position: {
           x: 0,
-          y: ((index + 1) * constants.HANDLE_SPACING) + constants.HEADER_HEIGHT
+          y: constants.HEADER_HEIGHT + constants.PADDING + (index * constants.HANDLE_SPACING)
         }
       }))}
-      outputHandles={[{ id: 'output', label: 'Output' }]}
+      outputHandles={[{ 
+        id: 'output', 
+        label: 'Output',
+        position: {
+          x: 0,
+          y: dimensions.height / 2
+        }
+      }]}
     >
       <textarea
         ref={textareaRef}
@@ -125,9 +129,9 @@ export const TextNode = ({ id, data }) => {
         onChange={handleTextChange}
         style={{
           ...commonStyles.textarea,
-          lineHeight: LINE_HEIGHT + 'px',
-          maxHeight: `${MAX_CONTENT_HEIGHT}px`,
-          overflowY: 'auto'
+          flex: 1,
+          minHeight: LINE_HEIGHT * 2,
+          maxHeight: MAX_CONTENT_HEIGHT
         }}
       />
     </BaseNode>
