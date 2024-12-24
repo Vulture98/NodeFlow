@@ -8,7 +8,7 @@ const MIN_HEIGHT = 120; // Reduced minimum height
 const PADDING = 8; // Reduced padding
 const HEADER_HEIGHT = 32;
 const HANDLE_SPACING = 24; // Adjusted handle spacing
-const BOTTOM_MARGIN = 0; // Removed bottom margin
+const BOTTOM_MARGIN = 4; // Small bottom margin
 
 export const BaseNode = ({ 
   id, 
@@ -48,9 +48,10 @@ export const BaseNode = ({
       
       <div style={{
         padding: PADDING,
-        flex: 1,
+        paddingBottom: PADDING + 4,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        gap: '4px'
       }}>
         {children}
       </div>
@@ -63,10 +64,10 @@ export const BaseNode = ({
           position={Position.Left}
           id={handle.id}
           style={{
-            top: handle.position ? handle.position.y : `${(index + 1) * (100 / (inputHandles.length + 1))}%`,
+            top: handle.position ? handle.position.y : HEADER_HEIGHT + (HANDLE_SPACING * (index + 1)),
             left: '-6px',
             transform: 'translate(-50%, -50%)',
-            width: '10px', // Slightly smaller handles
+            width: '10px',
             height: '10px',
             backgroundColor: '#4299e1',
             border: '2px solid #2b6cb0',
@@ -83,10 +84,10 @@ export const BaseNode = ({
           position={Position.Right}
           id={handle.id}
           style={{
-            top: handle.position ? handle.position.y : `${(index + 1) * (100 / (outputHandles.length + 1))}%`,
+            top: handle.position ? handle.position.y : HEADER_HEIGHT + (HANDLE_SPACING * (index + 1)),
             right: '-6px',
             transform: 'translate(50%, -50%)',
-            width: '10px', // Slightly smaller handles
+            width: '10px',
             height: '10px',
             backgroundColor: '#48bb78',
             border: '2px solid #2f855a',

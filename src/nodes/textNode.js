@@ -111,7 +111,7 @@ export const TextNode = ({ id, data }) => {
         label: v,
         position: {
           x: 0,
-          y: constants.HEADER_HEIGHT + constants.PADDING + (index * constants.HANDLE_SPACING)
+          y: constants.HEADER_HEIGHT + (constants.HANDLE_SPACING * (index + 1))
         }
       }))}
       outputHandles={[{ 
@@ -119,7 +119,7 @@ export const TextNode = ({ id, data }) => {
         label: 'Output',
         position: {
           x: 0,
-          y: dimensions.height / 2
+          y: constants.HEADER_HEIGHT + (constants.HANDLE_SPACING * 1.5)
         }
       }]}
     >
