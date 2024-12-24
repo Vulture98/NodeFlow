@@ -47,45 +47,7 @@ export const PipelineUI = () => {
 
     // Add test nodes automatically
     useEffect(() => {
-      if (nodes.length === 0) {
-        // Create input nodes
-        const input1 = {
-          id: 'input-1',
-          type: 'customInput',
-          position: { x: 100, y: 100 },
-          data: { id: 'input-1', nodeType: 'customInput' }
-        };
-        const input2 = {
-          id: 'input-2',
-          type: 'customInput',
-          position: { x: 100, y: 250 },
-          data: { id: 'input-2', nodeType: 'customInput' }
-        };
-
-        // Create text node
-        const textNode = {
-          id: 'text-1',
-          type: 'text',
-          position: { x: 400, y: 175 },
-          data: { 
-            id: 'text-1', 
-            nodeType: 'text',
-            text: '{{input1}}\n{{input2}}',
-            onTextChange: useStore.getState().onTextNodeChange
-          }
-        };
-
-        // Create LLM node
-        const llmNode = {
-          id: 'llm-1',
-          type: 'llm',
-          position: { x: 700, y: 175 },
-          data: { id: 'llm-1', nodeType: 'llm' }
-        };
-
-        // Add all nodes
-        [input1, input2, textNode, llmNode].forEach(node => addNode(node));
-      }
+      // Removed default nodes initialization
     }, []);
 
     const getInitNodeData = (nodeID, type) => {

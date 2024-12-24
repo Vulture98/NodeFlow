@@ -23,7 +23,7 @@ export const BaseNode = ({
   return (
     <div style={{
       width,
-      minHeight: height, // Changed to minHeight to allow content to determine actual height
+      minHeight: height,
       border: '1px solid #2d3748',
       borderRadius: '8px',
       backgroundColor: '#fff',
@@ -64,8 +64,8 @@ export const BaseNode = ({
           position={Position.Left}
           id={handle.id}
           style={{
-            top: `${(index + 1) * (100 / (inputHandles.length + 1))}%`,
-            left: '-6px',
+            top: handle.position ? handle.position.y : `${(index + 1) * (100 / (inputHandles.length + 1))}%`,
+            left: handle.position ? handle.position.x : '-6px',
             transform: 'translate(-50%, -50%)',
             width: '12px',
             height: '12px',
@@ -84,8 +84,8 @@ export const BaseNode = ({
           position={Position.Right}
           id={handle.id}
           style={{
-            top: `${(index + 1) * (100 / (outputHandles.length + 1))}%`,
-            right: '-6px',
+            top: handle.position ? handle.position.y : `${(index + 1) * (100 / (outputHandles.length + 1))}%`,
+            right: handle.position ? handle.position.x : '-6px',
             transform: 'translate(50%, -50%)',
             width: '12px',
             height: '12px',
