@@ -90,21 +90,41 @@ export const useStore = create((set, get) => ({
         return true;
       });
 
+      // Force React Flow to update edge positions
+      const updatedNodes = get().nodes.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              text: newText,
+              onTextChange: get().onTextNodeChange
+            }
+          };
+        }
+        return node;
+      });
+
       set({
         edges: updatedEdges,
-        nodes: get().nodes.map(node => {
-          if (node.id === nodeId) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                text: newText,
-                onTextChange: get().onTextNodeChange
-              }
-            };
-          }
-          return node;
-        })
+        nodes: updatedNodes
       });
+
+      // Force edge position update by triggering a small node position change
+      setTimeout(() => {
+        set({
+          nodes: updatedNodes.map(node => 
+            node.id === nodeId 
+              ? { ...node, position: { ...node.position, x: node.position.x + 0.1 } }
+              : node
+          )
+        });
+        // Restore original position
+        setTimeout(() => {
+          set({
+            nodes: updatedNodes
+          });
+        }, 0);
+      }, 0);
     }
   }));

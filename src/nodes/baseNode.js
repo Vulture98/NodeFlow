@@ -4,11 +4,11 @@ import { Handle, Position } from 'reactflow';
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
-const MIN_HEIGHT = 160; // Increased minimum height to accommodate all content
-const PADDING = 16; // Increased padding
+const MIN_HEIGHT = 120; // Reduced minimum height
+const PADDING = 8; // Reduced padding
 const HEADER_HEIGHT = 32;
-const HANDLE_SPACING = 20;
-const BOTTOM_MARGIN = 1;
+const HANDLE_SPACING = 24; // Adjusted handle spacing
+const BOTTOM_MARGIN = 4; // Small bottom margin
 
 export const BaseNode = ({ 
   id, 
@@ -23,7 +23,7 @@ export const BaseNode = ({
   return (
     <div style={{
       width,
-      minHeight: height, // Changed to minHeight to allow content to determine actual height
+      height,
       border: '1px solid #2d3748',
       borderRadius: '8px',
       backgroundColor: '#fff',
@@ -48,10 +48,10 @@ export const BaseNode = ({
       
       <div style={{
         padding: PADDING,
-        paddingBottom: PADDING + BOTTOM_MARGIN,
+        paddingBottom: PADDING + 4,
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px'
+        gap: '4px'
       }}>
         {children}
       </div>
@@ -64,11 +64,11 @@ export const BaseNode = ({
           position={Position.Left}
           id={handle.id}
           style={{
-            top: `${(index + 1) * (100 / (inputHandles.length + 1))}%`,
+            top: handle.position ? handle.position.y : HEADER_HEIGHT + (HANDLE_SPACING * (index + 1)),
             left: '-6px',
             transform: 'translate(-50%, -50%)',
-            width: '12px',
-            height: '12px',
+            width: '10px',
+            height: '10px',
             backgroundColor: '#4299e1',
             border: '2px solid #2b6cb0',
             zIndex: 1
@@ -84,11 +84,11 @@ export const BaseNode = ({
           position={Position.Right}
           id={handle.id}
           style={{
-            top: `${(index + 1) * (100 / (outputHandles.length + 1))}%`,
+            top: handle.position ? handle.position.y : HEADER_HEIGHT + (HANDLE_SPACING * (index + 1)),
             right: '-6px',
             transform: 'translate(50%, -50%)',
-            width: '12px',
-            height: '12px',
+            width: '10px',
+            height: '10px',
             backgroundColor: '#48bb78',
             border: '2px solid #2f855a',
             zIndex: 1
@@ -107,7 +107,7 @@ export const commonStyles = {
     border: '1px solid #e2e8f0',
     borderRadius: '4px',
     fontSize: '13px',
-    height: '28px', // Reduced height
+    height: '28px',
     boxSizing: 'border-box',
     backgroundColor: '#f7fafc'
   },
@@ -118,7 +118,7 @@ export const commonStyles = {
     borderRadius: '4px',
     backgroundColor: '#f7fafc',
     fontSize: '13px',
-    height: '28px', // Reduced height
+    height: '28px',
     boxSizing: 'border-box',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
@@ -127,7 +127,7 @@ export const commonStyles = {
     width: '100%',
     height: '100%',
     resize: 'none',
-    padding: '8px',
+    padding: '6px', // Reduced padding
     borderRadius: '4px',
     border: '1px solid #e2e8f0',
     fontFamily: 'monospace',
